@@ -98,9 +98,27 @@ POST {BASE_URL}{TRIGGER_PATH}
 
 ### 当前状态
 
-- 代码、页面、编译、装机全部通过；**未配置 `BASE_URL` 时页面显示引导文案**（已实测截图）
+- 代码、页面、编译、装机全部通过；**未配置 `BASE_URL` 时页面显示引导文案**（已实测截图，见 `docs/cloudfunc-app.jpg`）
 - AGC 控制台的触发器卡片只给出相对路径 `/functions/xxx/testhan2-$latest`，域名需要在控制台其他位置（或用 F12 抓一次真实请求）拿到后填入 `BASE_URL`
 - 云函数端代码也需要部署（控制台报过 `Cannot find module 'index.js'`，说明函数体没上传成功）
+
+### 包名与签名（重要）
+
+| 工程 | 包名 | AGC 状态 |
+|---|---|---|
+| `cloudfunc-app` | `com.example.cfapp` | 已在 AGC 创建应用（APP ID `6917620261826369552`），云函数 `testhan2` 建在其项目下 |
+| `weather-app` | `com.example.weatherapp` | DevEco 自动签名时自动注册 |
+
+两个包名的调试 Profile **各自独立**（绑定"包名 + 设备 UDID"），需要各自在 DevEco 里生成一次。
+
+本地若已生成过，DevEco 会把签名配置写进 `build-profile.json5`；**仓库里始终是空配置**，请注意：
+
+- 仓库版本 = 干净版（`signingConfigs: []`），克隆后需自己重新签名
+- 本机为了继续调试，签名后的配置另存为 `build-profile.signed.bak`（已在 `.gitignore` 中排除），需要时覆盖回去：
+
+```powershell
+Copy-Item build-profile.signed.bak build-profile.json5 -Force
+```
 
 ---
 
@@ -112,7 +130,7 @@ POST {BASE_URL}{TRIGGER_PATH}
 - 展示：实时温度、天气、高低温、湿度、PM2.5、空气质量、感冒提示、未来 5 天（星期/日期/天气/高低温/风向风力）
 - 权限：`ohos.permission.INTERNET`
 - 明文 HTTP 可用（HarmonyOS 7 模拟器实测未拦截）
-- **已在 Mate 90 Pro 模拟器实测跑通**，见 `docs/weather-app.png`
+- **已在 Mate 90 Pro 模拟器实测跑通**，见 `docs/weather-app.jpg`
 
 ---
 
@@ -121,15 +139,14 @@ POST {BASE_URL}{TRIGGER_PATH}
 | 项 | 结果 |
 |---|---|
 | 模拟器启动 | `Mate 90 Pro` → `hdc` 识别 `127.0.0.1:5555 Connected` |
-| 签名 | DevEco 自动签名成功（需设备在线 + 账号登录态有效） |
-| weather-app 编译 | BUILD SUCCESSFUL |
-| weather-app 安装 | `install bundle successfully` |
-| weather-app 运行 | 首页显示天津 10.4℃、晴、湿度 31%、PM2.5 16、优、未来 5 天 |
-| cloudfunc-app 编译/安装/运行 | 通过；未填域名时显示配置引导 |
+| DevEco 登录态 | 重新登录后 `LoginSuccessListener - receive login success`，`real-name: true` |
+| weather-app 签名 | 生成 `default_weather-app_*.p7b`（bundle `com.example.weatherapp`） |
+| weather-app 编译/安装/运行 | BUILD SUCCESSFUL → `install bundle successfully` → 首页显示天津 10.4℃、晴、湿度 31%、PM2.5 16、优、未来 5 天 |
+| cloudfunc-app 签名 | 生成 `default_cloudfunc-app_*.p7b`（bundle `com.example.cfapp`） |
+| cloudfunc-app 编译/安装/运行 | BUILD SUCCESSFUL → 安装成功 → 点按钮显示配置引导（未填域名） |
 
 ## 待补
 
 1. `CloudConfig.BASE_URL`（AGC 触发器域名）
 2. `CLIENT_ID` / `CLIENT_SECRET`（AGC → 认证凭据 → 下载认证凭证）
-3. AGC 云函数端代码部署（`index.handler`）
-4. DevEco 重新登录后为两个新包名各签一次名
+3. AGC 云函数端代码部署（`index.handler`，之前报 `Cannot find module 'index.js'`）
