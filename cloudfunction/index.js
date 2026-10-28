@@ -1,25 +1,32 @@
 /**
- * AGC 云函数入口（Node.js 18 / 事件调用 · HTTP 触发器）
+ * AGC 云函数入口（Node.js · 事件调用 / HTTP 触发器）
  *
- * 控制台「函数代码」里把这段整段粘进去即可，入口写 index.handler。
- * 注意：如果模板里导出的是 myHandler，请把 exports.handler 改成 exports.myHandler，
- *      同时把控制台的「函数入口」写成 index.myHandler —— 两边必须一致。
+ * 重要：AGC 云函数的 Node.js 运行时是「四参数回调」风格
+ *       必须调用 callback(结果)，函数才算执行完成，否则平台会一直等待直到超时。
+ *
+ * 控制台配置：
+ *   文件名：handler.js
+ *   函数入口：handler.myHandler   ← 文件名 + 导出名
  */
-exports.handler = async (event, context) => {
+let myHandler = async function (event, context, callback, logger) {
   let body = {};
   try {
     body = event.body ? JSON.parse(event.body) : {};
   } catch (e) {
     body = { raw: event.body };
   }
-  return {
-    statusCode: 200,
-    headers: { 'Content-Type': 'application/json; charset=utf-8' },
-    body: JSON.stringify({
-      code: 0,
-      msg: 'hello from cloud function',
-      echo: body,
-      serverTime: new Date().toISOString()
-    })
-  };
+
+  if (logger) {
+    logger.info('event received: ' + JSON.stringify(event));
+  }
+
+  // 关键：必须调用 callback 才算执行完成
+  callback({
+    code: 0,
+    msg: 'hello from cloud function',
+    echo: body,
+    serverTime: new Date().toISOString()
+  });
 };
+
+export { myHandler };

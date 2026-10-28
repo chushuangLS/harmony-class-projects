@@ -128,10 +128,10 @@ Copy-Item build-profile.signed.bak build-profile.json5 -Force
 
 ## cloudfunction/（云函数端代码，供控制台粘贴）
 
-- `cloudfunction/index.js`：函数入口 `exports.handler`，回显请求体并返回服务器时间
+- `cloudfunction/index.js`：函数入口 `handler.myHandler`（callback 风格），回显请求体并返回服务器时间
 - `cloudfunction/function-config.json`：触发器配置参考（HTTP / POST / apigw-client / 启用 decode）
 
-部署方法：AGC 控制台 → 云函数 → `testhan2` → 「函数代码」→ 运行环境 Node.js 18、入口 `index.handler` → 粘贴 `index.js` 内容 → 保存并部署。
+部署方法：AGC 控制台 → 云函数 → `testhan2` → 「函数代码」→ 运行环境 Node.js 18、入口 `handler.myHandler` → 粘贴 `index.js` 内容 → 保存并部署。
 部署后用「测试」验证，返回应为：
 
 ```json

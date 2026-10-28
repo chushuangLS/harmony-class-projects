@@ -7,6 +7,6 @@
     "timeout": 30,
     "memorySize": 512,
     "runtime": "Node.js18",
-    "handler": "index.handler"
+    "handler": "handler.myHandler"
   }
 }
