@@ -22,3 +22,7 @@ node_modules/
 
 # 本地签名配置备份（含机器相关加密口令，不入库）
 **/build-profile.signed.bak
+
+# 逆向研究用的 SDK 副本，不入库
+tools/sdk-probe/
+tools/

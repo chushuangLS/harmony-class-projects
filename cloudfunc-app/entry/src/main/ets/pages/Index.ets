@@ -5,7 +5,13 @@ import { CloudConfig } from '../common/CloudConfig';
 interface TokenResp {
   access_token: string;
   expires_in: number;
-  token_type: string;
+}
+
+interface TokenReq {
+  grant_type: string;
+  client_id: string;
+  client_secret: string;
+  useJwt: number;
 }
 
 @Entry
@@ -19,24 +25,37 @@ struct Index {
   @State errMsg: string = '';
   @State logText: string = '尚未发起请求';
   @State tokenBrief: string = '';
+  @State tokenCached: string = '';
+  @State tokenExpireAt: number = 0;
 
   private async fetchToken(): Promise<string> {
+    if (this.tokenCached.length > 0 && Date.now() < this.tokenExpireAt) {
+      return this.tokenCached;
+    }
     const request = http.createHttp();
     try {
-      const form: string = 'grant_type=client_credentials&client_id=' + CloudConfig.CLIENT_ID +
-        '&client_secret=' + CloudConfig.CLIENT_SECRET;
-      const resp = await request.request(CloudConfig.TOKEN_URL, {
+      const reqBody: TokenReq = {
+        grant_type: 'client_credentials',
+        client_id: CloudConfig.CLIENT_ID,
+        client_secret: CloudConfig.CLIENT_SECRET,
+        useJwt: 1
+      };
+      const payload: string = JSON.stringify(reqBody);
+      const resp = await request.request(CloudConfig.tokenUrl(), {
         method: http.RequestMethod.POST,
-        header: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        extraData: form,
+        header: { 'Content-Type': 'application/json;charset=UTF-8' },
+        extraData: payload,
         connectTimeout: 15000,
         readTimeout: 15000
       });
       const body: string = resp.result as string;
       if (resp.responseCode !== 200) {
-        throw new Error('换 token 失败 HTTP ' + resp.responseCode + ' : ' + body);
+        throw new Error('取 token 失败 HTTP ' + resp.responseCode + ' : ' + body);
       }
       const parsed: TokenResp = JSON.parse(body) as TokenResp;
+      const ttl: number = parsed.expires_in > 60 ? parsed.expires_in - 60 : parsed.expires_in;
+      this.tokenCached = parsed.access_token;
+      this.tokenExpireAt = Date.now() + ttl * 1000;
       this.tokenBrief = 'token 已获取，有效期 ' + parsed.expires_in + ' 秒';
       return parsed.access_token;
     } finally {
@@ -45,12 +64,6 @@ struct Index {
   }
 
   async callCloudFunction(): Promise<void> {
-    if (CloudConfig.BASE_URL.length === 0) {
-      this.errMsg = '还没有配置触发器域名。\n请打开 entry/src/main/ets/common/CloudConfig.ets，' +
-        '把 BASE_URL 填成 https://<控制台给出的域名>（路径已按 testhan2 预置好）。';
-      this.hasResult = false;
-      return;
-    }
     this.loading = true;
     this.errMsg = '';
     this.hasResult = false;
@@ -58,15 +71,20 @@ struct Index {
     const started: number = Date.now();
     const request = http.createHttp();
     try {
-      let authHeader = '';
-      if (CloudConfig.needToken()) {
-        const token: string = await this.fetchToken();
-        authHeader = 'Bearer ' + token;
-      }
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (authHeader.length > 0) {
-        headers['Authorization'] = authHeader;
-      }
+      const token: string = await this.fetchToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json;charset=UTF-8',
+        'Authorization': 'Bearer ' + token,
+        'client_id': CloudConfig.CLIENT_ID,
+        'appId': CloudConfig.APP_ID,
+        'productId': CloudConfig.PRODUCT_ID,
+        'sdkServiceName': CloudConfig.SDK_SERVICE_NAME,
+        'sdkVersion': CloudConfig.SDK_VERSION,
+        'sdkPlatform': 'OpenHarmony',
+        'sdkType': 'TS',
+        'packageName': CloudConfig.PACKAGE_NAME,
+        'appVersion': '1.0.0'
+      };
       const resp = await request.request(CloudConfig.requestUrl(), {
         method: http.RequestMethod.POST,
         header: headers,
@@ -76,8 +94,7 @@ struct Index {
       });
       this.costMs = Date.now() - started;
       this.statusCode = resp.responseCode;
-      const raw: string = resp.result as string;
-      this.respBody = this.pretty(raw);
+      this.respBody = this.pretty(resp.result as string);
       this.hasResult = true;
       this.logText = '请求完成';
     } catch (e) {
@@ -131,11 +148,11 @@ struct Index {
       .width('100%')
       .padding({ left: 20, right: 20, top: 16, bottom: 6 })
 
-      Text(CloudConfig.requestUrl().length > 0 ? CloudConfig.requestUrl() : '(未配置域名) ' + CloudConfig.TRIGGER_PATH)
+      Text('testhan2-$latest')
         .fontSize(12)
         .fontColor('#5A6B7B')
         .width('100%')
-        .padding({ left: 20, right: 20, bottom: 4 })
+        .padding({ left: 20, right: 20, bottom: 2 })
 
       if (this.tokenBrief.length > 0) {
         Text(this.tokenBrief)
@@ -187,7 +204,7 @@ struct Index {
         .borderRadius(14)
         .backgroundColor('#FFFFFF')
 
-        Text('返回结果')
+        Text('云函数返回')
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor('#1F2D3D')

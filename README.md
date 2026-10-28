@@ -139,3 +139,68 @@ Copy-Item build-profile.signed.bak build-profile.json5 -Force
 ```
 
 之前控制台报 `Cannot find module '/dcache/layer/func/index.js'`，说明函数体没有上传成功，必须先解决这一步。
+---
+
+## 【已打通】云函数真实调用链路（逆向 AGC 官方 SDK 得到）
+
+AGC 新版控制台的「触发URL」只给相对路径，真实公网地址需要按官方 `@hw-agconnect/cloud` SDK 的规则拼装。
+以下参数已在本项目实测跑通（模拟器 → HTTP 200 → `{"code":0,...}`）：
+
+| 项 | 值 |
+|---|---|
+| 网关域名 | `https://connect-drcn.dbankcloud.cn`（= agconnect-services.json 里的 `agcgw.url`） |
+| 触发路径 | `/agc/apigw/wisefunction/functions/4b7o26s1/testhan2-$latest` |
+| 取 token | `POST /agc/apigw/oauth2/v1/token` |
+| appId 算法 | `base36(sha256("agc:<cp_id>@<product_id>"))` 取前 8 位 → `4b7o26s1` |
+
+### 取 token
+
+```
+POST https://connect-drcn.dbankcloud.cn/agc/apigw/oauth2/v1/token
+Content-Type: application/json;charset=UTF-8
+
+{
+  "grant_type": "client_credentials",
+  "client_id": "<应用客户端ID>",
+  "client_secret": "<应用客户端密钥>",
+  "useJwt": 1
+}
+```
+
+### 调用函数
+
+```
+POST https://connect-drcn.dbankcloud.cn/agc/apigw/wisefunction/functions/4b7o26s1/testhan2-$latest
+Authorization: Bearer <access_token>
+client_id:     <应用客户端ID>
+appId:         6917620261826369552
+productId:     101653523865475304
+sdkServiceName: agconnect-cloud
+sdkVersion:    1.0.2
+sdkPlatform:   OpenHarmony
+sdkType:       TS
+packageName:   com.example.cfapp
+Content-Type:  application/json;charset=UTF-8
+
+{"request":"Hello World!"}
+```
+
+**注意**：缺任何一个身份头都会返回 `401 {"ret":{"code":205524993,"msg":"client token auth failed"}}`。
+
+### 实测结果
+
+```json
+{
+  "code": 0,
+  "msg": "hello from cloud function",
+  "echo": { "request": "Hello World!" },
+  "serverTime": "2026-10-28T10:04:35.644Z"
+}
+```
+
+页面展示：状态码 `200`、耗时 `277 ms`、token 有效期 `14399 秒`、返回 JSON 格式化后滚动显示。
+
+### ⚠️ 安全提醒
+
+`CLIENT_ID` / `CLIENT_SECRET` 目前**写死在 `CloudConfig.ets` 里**（课堂作业为了方便直接可跑）。
+本仓库是公开的，课后建议到 AGC 重建一次 API 客户端并作废该密钥。
