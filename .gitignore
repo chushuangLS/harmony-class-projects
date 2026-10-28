@@ -1,0 +1,21 @@
+# 忽略构建产物与本地环境文件
+**/build/
+**/.hvigor/
+**/oh_modules/
+**/.idea/
+**/.cxx/
+**/.preview/
+**/.clangd/
+**/.clang-format
+local.properties
+local.properties.bak
+*.hap
+*.hsp
+*.har
+*.p7b
+*.p12
+*.cer
+*.csr
+.DS_Store
+Thumbs.db
+node_modules/
