@@ -1,0 +1,12 @@
+{
+  "type": "http",
+  "properties": {
+    "enableUrlDecode": true,
+    "authFlag": "true",
+    "authType": "apigw-client",
+    "timeout": 30,
+    "memorySize": 512,
+    "runtime": "Node.js18",
+    "handler": "index.handler"
+  }
+}

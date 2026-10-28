@@ -1,33 +1,25 @@
-# HarmonyOS 课堂练习：云函数请求 + 天气查询
+﻿# HarmonyOS 璇惧爞缁冧範锛氫簯鍑芥暟璇锋眰 + 澶╂皵鏌ヨ
 
-一个仓库，两个独立的 HarmonyOS 工程（ArkTS + Stage 模型，API 26 / HarmonyOS 7.0.0）。
-
-| 工程 | 首页 | 说明 |
+涓€涓粨搴擄紝涓や釜鐙珛鐨?HarmonyOS 宸ョ▼锛圓rkTS + Stage 妯″瀷锛孉PI 26 / HarmonyOS 7.0.0锛夈€?
+| 宸ョ▼ | 棣栭〉 | 璇存槑 |
 |---|---|---|
-| `cloudfunc-app/` | `pages/Index` | 点按钮请求云函数（HTTP 触发器 POST / apigw-client），页面显示状态码、耗时与返回 JSON |
-| `weather-app/` | `pages/Index` | 天气查询：城市下拉 + 查询按钮 + 实时天气 + 未来 5 天预报 |
+| `cloudfunc-app/` | `pages/Index` | 鐐规寜閽姹備簯鍑芥暟锛圚TTP 瑙﹀彂鍣?POST / apigw-client锛夛紝椤甸潰鏄剧ず鐘舵€佺爜銆佽€楁椂涓庤繑鍥?JSON |
+| `weather-app/` | `pages/Index` | 澶╂皵鏌ヨ锛氬煄甯備笅鎷?+ 鏌ヨ鎸夐挳 + 瀹炴椂澶╂皵 + 鏈潵 5 澶╅鎶?|
 
-两个工程的 `main_pages.json` 都只注册了 `pages/Index`，`EntryAbility` 也直接 `loadContent('pages/Index')`，因此**打开即是首页**。
-
+涓や釜宸ョ▼鐨?`main_pages.json` 閮藉彧娉ㄥ唽浜?`pages/Index`锛宍EntryAbility` 涔熺洿鎺?`loadContent('pages/Index')`锛屽洜姝?*鎵撳紑鍗虫槸棣栭〉**銆?
 ---
 
-## 环境要求
+## 鐜瑕佹眰
 
-- DevEco Studio 26.0.0.851（内置 Node、hvigor、ohpm）
-- HarmonyOS SDK API 26（`D:\deveco studio\sdk`）
-- 模拟器：`Mate 90 Pro`（HarmonyOS 7.0.0.107 / API 26 / x86_64）
-
-⚠️ **工程路径必须是纯 ASCII**。hvigor 对项目路径有字符限制，中文路径会直接报错：
-
+- DevEco Studio 26.0.0.851锛堝唴缃?Node銆乭vigor銆乷hpm锛?- HarmonyOS SDK API 26锛坄D:\deveco studio\sdk`锛?- 妯℃嫙鍣細`Mate 90 Pro`锛圚armonyOS 7.0.0.107 / API 26 / x86_64锛?
+鈿狅笍 **宸ョ▼璺緞蹇呴』鏄函 ASCII**銆俬vigor 瀵归」鐩矾寰勬湁瀛楃闄愬埗锛屼腑鏂囪矾寰勪細鐩存帴鎶ラ敊锛?
 ```
 ERROR: 00306003 Specification Limit Violation
-Invalid project path. Current path does not match: D:\华为虚拟机\weather-app
+Invalid project path. Current path does not match: D:\鍗庝负铏氭嫙鏈篭weather-app
 ```
 
-所以本仓库请放在 `D:\harmony-projects\` 这类纯英文路径下。
-
-## 命令行构建
-
+鎵€浠ユ湰浠撳簱璇锋斁鍦?`D:\harmony-projects\` 杩欑被绾嫳鏂囪矾寰勪笅銆?
+## 鍛戒护琛屾瀯寤?
 ```bat
 set NODE_HOME=D:\deveco studio\tools\node
 set DEVECO_SDK_HOME=D:\deveco studio\sdk
@@ -37,10 +29,8 @@ cd /d D:\harmony-projects\weather-app
 "D:\deveco studio\tools\hvigor\bin\hvigorw.bat" --mode module -p product=default -p buildMode=debug assembleHap --no-daemon
 ```
 
-产物：`entry/build/default/outputs/default/entry-default-signed.hap`（签名配置存在时）或 `entry-default-unsigned.hap`。
-
-安装运行：
-
+浜х墿锛歚entry/build/default/outputs/default/entry-default-signed.hap`锛堢鍚嶉厤缃瓨鍦ㄦ椂锛夋垨 `entry-default-unsigned.hap`銆?
+瀹夎杩愯锛?
 ```bat
 hdc -t 127.0.0.1:5555 install -r entry-default-signed.hap
 hdc -t 127.0.0.1:5555 shell aa start -a EntryAbility -b <bundleName>
@@ -50,72 +40,60 @@ hdc -t 127.0.0.1:5555 file recv /data/local/tmp/s.jpeg .\s.jpeg
 
 ---
 
-## 签名说明
+## 绛惧悕璇存槑
 
-仓库内**不保存任何签名材料**（`build-profile.json5` 的 `signingConfigs` 为空，`.p12/.cer/.p7b` 已在 `.gitignore` 里排除）。
+浠撳簱鍐?*涓嶄繚瀛樹换浣曠鍚嶆潗鏂?*锛坄build-profile.json5` 鐨?`signingConfigs` 涓虹┖锛宍.p12/.cer/.p7b` 宸插湪 `.gitignore` 閲屾帓闄わ級銆?
+鑷姩绛惧悕鐨勫墠鎻愶細
 
-自动签名的前提：
-
-1. DevEco Studio 已登录华为开发者账号，且登录态有效（token 过期时签名面板会报
-   `401 [AppGalleryConnectUserAuthService] getTokenInfo return null`，重新登录即可）
-2. **模拟器/真机已连接**（AGC 的调试 Profile 绑定"包名 + 设备 UDID"，没有设备就生成不了 Profile）
-3. `File → Project Structure → Signing Configs` 勾选「自动生成签名文件」
-
-生成后 DevEco 会把证书与 Profile 写到 `~/.ohos/config/` 并自动回填 `build-profile.json5`。
-
+1. DevEco Studio 宸茬櫥褰曞崕涓哄紑鍙戣€呰处鍙凤紝涓旂櫥褰曟€佹湁鏁堬紙token 杩囨湡鏃剁鍚嶉潰鏉夸細鎶?   `401 [AppGalleryConnectUserAuthService] getTokenInfo return null`锛岄噸鏂扮櫥褰曞嵆鍙級
+2. **妯℃嫙鍣?鐪熸満宸茶繛鎺?*锛圓GC 鐨勮皟璇?Profile 缁戝畾"鍖呭悕 + 璁惧 UDID"锛屾病鏈夎澶囧氨鐢熸垚涓嶄簡 Profile锛?3. `File 鈫?Project Structure 鈫?Signing Configs` 鍕鹃€夈€岃嚜鍔ㄧ敓鎴愮鍚嶆枃浠躲€?
+鐢熸垚鍚?DevEco 浼氭妸璇佷功涓?Profile 鍐欏埌 `~/.ohos/config/` 骞惰嚜鍔ㄥ洖濉?`build-profile.json5`銆?
 ---
 
 ## cloudfunc-app
 
-### 页面行为
+### 椤甸潰琛屼负
 
-- 首页一个 `Button('请求云函数')`
-- 点击后 `POST` 请求 HTTP 触发器，页面展示：**状态码 / 耗时(ms) / 返回 JSON（格式化后滚动展示）**
-- 请求失败、未配置域名等情况都有明确提示，不会白屏
+- 棣栭〉涓€涓?`Button('璇锋眰浜戝嚱鏁?)`
+- 鐐瑰嚮鍚?`POST` 璇锋眰 HTTP 瑙﹀彂鍣紝椤甸潰灞曠ず锛?*鐘舵€佺爜 / 鑰楁椂(ms) / 杩斿洖 JSON锛堟牸寮忓寲鍚庢粴鍔ㄥ睍绀猴級**
+- 璇锋眰澶辫触銆佹湭閰嶇疆鍩熷悕绛夋儏鍐甸兘鏈夋槑纭彁绀猴紝涓嶄細鐧藉睆
 
-### 配置位置
+### 閰嶇疆浣嶇疆
 
 `entry/src/main/ets/common/CloudConfig.ets`
 
 ```ts
-static readonly BASE_URL: string = '';                 // ← 填 AGC 触发器域名 https://xxx
+static readonly BASE_URL: string = '';                 // 鈫?濉?AGC 瑙﹀彂鍣ㄥ煙鍚?https://xxx
 static readonly TRIGGER_PATH: string = '/functions/4b7o26s1/testhan2-$latest';
-static readonly CLIENT_ID: string = '';                // apigw-client 认证需要
-static readonly CLIENT_SECRET: string = '';
+static readonly CLIENT_ID: string = '';                // apigw-client 璁よ瘉闇€瑕?static readonly CLIENT_SECRET: string = '';
 ```
 
-认证流程（`apigw-client`）：
+璁よ瘉娴佺▼锛坄apigw-client`锛夛細
 
 ```
 POST https://oauth-login.cloud.huawei.com/oauth2/v3/token
      grant_type=client_credentials&client_id=...&client_secret=...
-  → access_token
+  鈫?access_token
 POST {BASE_URL}{TRIGGER_PATH}
      Authorization: Bearer <access_token>
      Content-Type: application/json
      {"request":"Hello World!"}
 ```
 
-### 当前状态
+### 褰撳墠鐘舵€?
+- 浠ｇ爜銆侀〉闈€佺紪璇戙€佽鏈哄叏閮ㄩ€氳繃锛?*鏈厤缃?`BASE_URL` 鏃堕〉闈㈡樉绀哄紩瀵兼枃妗?*锛堝凡瀹炴祴鎴浘锛岃 `docs/cloudfunc-app.jpg`锛?- AGC 鎺у埗鍙扮殑瑙﹀彂鍣ㄥ崱鐗囧彧缁欏嚭鐩稿璺緞 `/functions/xxx/testhan2-$latest`锛屽煙鍚嶉渶瑕佸湪鎺у埗鍙板叾浠栦綅缃紙鎴栫敤 F12 鎶撲竴娆＄湡瀹炶姹傦級鎷垮埌鍚庡～鍏?`BASE_URL`
+- 浜戝嚱鏁扮浠ｇ爜涔熼渶瑕侀儴缃诧紙鎺у埗鍙版姤杩?`Cannot find module 'index.js'`锛岃鏄庡嚱鏁颁綋娌′笂浼犳垚鍔燂級
 
-- 代码、页面、编译、装机全部通过；**未配置 `BASE_URL` 时页面显示引导文案**（已实测截图，见 `docs/cloudfunc-app.jpg`）
-- AGC 控制台的触发器卡片只给出相对路径 `/functions/xxx/testhan2-$latest`，域名需要在控制台其他位置（或用 F12 抓一次真实请求）拿到后填入 `BASE_URL`
-- 云函数端代码也需要部署（控制台报过 `Cannot find module 'index.js'`，说明函数体没上传成功）
-
-### 包名与签名（重要）
-
-| 工程 | 包名 | AGC 状态 |
+### 鍖呭悕涓庣鍚嶏紙閲嶈锛?
+| 宸ョ▼ | 鍖呭悕 | AGC 鐘舵€?|
 |---|---|---|
-| `cloudfunc-app` | `com.example.cfapp` | 已在 AGC 创建应用（APP ID `6917620261826369552`），云函数 `testhan2` 建在其项目下 |
-| `weather-app` | `com.example.weatherapp` | DevEco 自动签名时自动注册 |
+| `cloudfunc-app` | `com.example.cfapp` | 宸插湪 AGC 鍒涘缓搴旂敤锛圓PP ID `6917620261826369552`锛夛紝浜戝嚱鏁?`testhan2` 寤哄湪鍏堕」鐩笅 |
+| `weather-app` | `com.example.weatherapp` | DevEco 鑷姩绛惧悕鏃惰嚜鍔ㄦ敞鍐?|
 
-两个包名的调试 Profile **各自独立**（绑定"包名 + 设备 UDID"），需要各自在 DevEco 里生成一次。
-
-本地若已生成过，DevEco 会把签名配置写进 `build-profile.json5`；**仓库里始终是空配置**，请注意：
-
-- 仓库版本 = 干净版（`signingConfigs: []`），克隆后需自己重新签名
-- 本机为了继续调试，签名后的配置另存为 `build-profile.signed.bak`（已在 `.gitignore` 中排除），需要时覆盖回去：
-
+涓や釜鍖呭悕鐨勮皟璇?Profile **鍚勮嚜鐙珛**锛堢粦瀹?鍖呭悕 + 璁惧 UDID"锛夛紝闇€瑕佸悇鑷湪 DevEco 閲岀敓鎴愪竴娆°€?
+鏈湴鑻ュ凡鐢熸垚杩囷紝DevEco 浼氭妸绛惧悕閰嶇疆鍐欒繘 `build-profile.json5`锛?*浠撳簱閲屽缁堟槸绌洪厤缃?*锛岃娉ㄦ剰锛?
+- 浠撳簱鐗堟湰 = 骞插噣鐗堬紙`signingConfigs: []`锛夛紝鍏嬮殕鍚庨渶鑷繁閲嶆柊绛惧悕
+- 鏈満涓轰簡缁х画璋冭瘯锛岀鍚嶅悗鐨勯厤缃彟瀛樹负 `build-profile.signed.bak`锛堝凡鍦?`.gitignore` 涓帓闄わ級锛岄渶瑕佹椂瑕嗙洊鍥炲幓锛?
 ```powershell
 Copy-Item build-profile.signed.bak build-profile.json5 -Force
 ```
@@ -124,29 +102,40 @@ Copy-Item build-profile.signed.bak build-profile.json5 -Force
 
 ## weather-app
 
-- 接口：`http://t.weather.sojson.com/api/weather/city/{cityId}`（sojson 免费天气 API）
-- 内置 10 个城市：北京/上海/天津/重庆/广州/深圳/杭州/成都/武汉/西安
-- 接口限流 **3 秒一次**，代码里做了节流提示
-- 展示：实时温度、天气、高低温、湿度、PM2.5、空气质量、感冒提示、未来 5 天（星期/日期/天气/高低温/风向风力）
-- 权限：`ohos.permission.INTERNET`
-- 明文 HTTP 可用（HarmonyOS 7 模拟器实测未拦截）
-- **已在 Mate 90 Pro 模拟器实测跑通**，见 `docs/weather-app.jpg`
+- 鎺ュ彛锛歚http://t.weather.sojson.com/api/weather/city/{cityId}`锛坰ojson 鍏嶈垂澶╂皵 API锛?- 鍐呯疆 10 涓煄甯傦細鍖椾含/涓婃捣/澶╂触/閲嶅簡/骞垮窞/娣卞湷/鏉窞/鎴愰兘/姝︽眽/瑗垮畨
+- 鎺ュ彛闄愭祦 **3 绉掍竴娆?*锛屼唬鐮侀噷鍋氫簡鑺傛祦鎻愮ず
+- 灞曠ず锛氬疄鏃舵俯搴︺€佸ぉ姘斻€侀珮浣庢俯銆佹箍搴︺€丳M2.5銆佺┖姘旇川閲忋€佹劅鍐掓彁绀恒€佹湭鏉?5 澶╋紙鏄熸湡/鏃ユ湡/澶╂皵/楂樹綆娓?椋庡悜椋庡姏锛?- 鏉冮檺锛歚ohos.permission.INTERNET`
+- 鏄庢枃 HTTP 鍙敤锛圚armonyOS 7 妯℃嫙鍣ㄥ疄娴嬫湭鎷︽埅锛?- **宸插湪 Mate 90 Pro 妯℃嫙鍣ㄥ疄娴嬭窇閫?*锛岃 `docs/weather-app.jpg`
 
 ---
 
-## 实测记录
+## 瀹炴祴璁板綍
 
-| 项 | 结果 |
+| 椤?| 缁撴灉 |
 |---|---|
-| 模拟器启动 | `Mate 90 Pro` → `hdc` 识别 `127.0.0.1:5555 Connected` |
-| DevEco 登录态 | 重新登录后 `LoginSuccessListener - receive login success`，`real-name: true` |
-| weather-app 签名 | 生成 `default_weather-app_*.p7b`（bundle `com.example.weatherapp`） |
-| weather-app 编译/安装/运行 | BUILD SUCCESSFUL → `install bundle successfully` → 首页显示天津 10.4℃、晴、湿度 31%、PM2.5 16、优、未来 5 天 |
-| cloudfunc-app 签名 | 生成 `default_cloudfunc-app_*.p7b`（bundle `com.example.cfapp`） |
-| cloudfunc-app 编译/安装/运行 | BUILD SUCCESSFUL → 安装成功 → 点按钮显示配置引导（未填域名） |
+| 妯℃嫙鍣ㄥ惎鍔?| `Mate 90 Pro` 鈫?`hdc` 璇嗗埆 `127.0.0.1:5555 Connected` |
+| DevEco 鐧诲綍鎬?| 閲嶆柊鐧诲綍鍚?`LoginSuccessListener - receive login success`锛宍real-name: true` |
+| weather-app 绛惧悕 | 鐢熸垚 `default_weather-app_*.p7b`锛坆undle `com.example.weatherapp`锛?|
+| weather-app 缂栬瘧/瀹夎/杩愯 | BUILD SUCCESSFUL 鈫?`install bundle successfully` 鈫?棣栭〉鏄剧ず澶╂触 10.4鈩冦€佹櫞銆佹箍搴?31%銆丳M2.5 16銆佷紭銆佹湭鏉?5 澶?|
+| cloudfunc-app 绛惧悕 | 鐢熸垚 `default_cloudfunc-app_*.p7b`锛坆undle `com.example.cfapp`锛?|
+| cloudfunc-app 缂栬瘧/瀹夎/杩愯 | BUILD SUCCESSFUL 鈫?瀹夎鎴愬姛 鈫?鐐规寜閽樉绀洪厤缃紩瀵硷紙鏈～鍩熷悕锛?|
 
-## 待补
+## 寰呰ˉ
 
-1. `CloudConfig.BASE_URL`（AGC 触发器域名）
-2. `CLIENT_ID` / `CLIENT_SECRET`（AGC → 认证凭据 → 下载认证凭证）
-3. AGC 云函数端代码部署（`index.handler`，之前报 `Cannot find module 'index.js'`）
+1. `CloudConfig.BASE_URL`锛圓GC 瑙﹀彂鍣ㄥ煙鍚嶏級
+2. `CLIENT_ID` / `CLIENT_SECRET`锛圓GC 鈫?璁よ瘉鍑嵁 鈫?涓嬭浇璁よ瘉鍑瘉锛?3. AGC 浜戝嚱鏁扮浠ｇ爜閮ㄧ讲锛坄index.handler`锛屼箣鍓嶆姤 `Cannot find module 'index.js'`锛?
+---
+
+## cloudfunction/（云函数端代码，供控制台粘贴）
+
+- `cloudfunction/index.js`：函数入口 `exports.handler`，回显请求体并返回服务器时间
+- `cloudfunction/function-config.json`：触发器配置参考（HTTP / POST / apigw-client / 启用 decode）
+
+部署方法：AGC 控制台 → 云函数 → `testhan2` → 「函数代码」→ 运行环境 Node.js 18、入口 `index.handler` → 粘贴 `index.js` 内容 → 保存并部署。
+部署后用「测试」验证，返回应为：
+
+```json
+{ "code": 0, "msg": "hello from cloud function", "echo": {...}, "serverTime": "..." }
+```
+
+之前控制台报 `Cannot find module '/dcache/layer/func/index.js'`，说明函数体没有上传成功，必须先解决这一步。
