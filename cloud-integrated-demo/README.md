@@ -134,3 +134,70 @@ message: 401:205525007:verify signature failed
 
 仍失败，推测还需要在 DevEco 签名面板勾选「关联已注册应用」，让 AGC 把证书与项目正式绑定。
 在那之前，端侧调用走上面的直连方式。
+---
+
+# 云笔记应用（当前版本）
+
+按印象笔记的交互重写：列表 + 全屏编辑，只保留笔记功能。
+
+## 功能
+
+| 功能 | 说明 |
+|---|---|
+| 列表 | 标题 / 摘要 / 更新时间，按更新时间倒序；顶部显示条数 |
+| 搜索 | 按标题与正文实时过滤 |
+| 新建 | 右下角绿色 + 按钮 |
+| 编辑 | 点卡片进入，标题大字 + 正文占满 |
+| 自动保存 | 返回列表或点「完成」时保存；内容清空的笔记自动删除 |
+| 删除 | 编辑页右上角「删除」，二次确认 |
+| 空状态 | 无笔记时的提示插画与引导文案 |
+| 示例数据 | 首次启动库为空时插入 2 条示例笔记（`seedIfEmpty()`，不需要可删） |
+
+## 文件结构
+
+```
+entry/src/main/ets/
+├── pages/Index.ets          列表 + 编辑器（单页状态切换）
+└── common/
+    ├── NoteModel.ts         数据模型（title/content/updatedAt + 摘要生成）
+    └── NotesStore.ts        持久化（@kit.ArkData preferences）
+CloudProgram/clouddb/
+├── db-config.json
+└── objecttype/Note.json     云数据库对象类型（已定义，待部署）
+```
+
+## 数据存储
+
+**当前：本地 preferences**（`notes_store` 这个库，单个 key 存 JSON 数组）。
+原因：端云一体的云端调用仍被网关签名校验挡住（`401:205525007 verify signature failed`），
+CloudDB 走的是同一套鉴权，预计会撞同一堵墙。
+
+**云端部分已经准备好、只差一步：**
+
+1. `CloudProgram/clouddb/objecttype/Note.json` 是 CloudDB 的对象类型（id/title/content/owner/updatedAt + 索引 + 权限）
+2. 在 DevEco 里右键 `CloudProgram/clouddb` → `Deploy Cloud DB` 即可建表
+3. 端侧把 `NotesStore` 换成 `cloudDatabase` 实现即可（`@kit.CloudFoundationKit`）
+4. 前提仍是：DevEco 签名面板勾选「关联已注册应用」，让 AGC 认可当前签名证书
+
+## 构建
+
+```powershell
+$env:NODE_HOME='D:\deveco studio\tools\node'
+$env:DEVECO_SDK_HOME='D:\deveco studio\sdk'
+$env:PATH="$env:NODE_HOME;$env:PATH"
+Set-Location 'D:\harmony-projects\cloud-integrated-demo'
+& 'D:\deveco studio\tools\hvigor\bin\hvigorw.bat' --mode module -p product=default -p buildMode=debug assembleHap --no-daemon
+```
+
+## 实测（Mate 90 Pro 模拟器）
+
+| 操作 | 结果 |
+|---|---|
+| 首次启动 | 空库 → 自动插入 2 条示例笔记 |
+| 列表渲染 | 卡片布局、时间、摘要均正常 |
+| 新建 | 输入标题与正文 → 完成 → 列表变 3 条，新笔记置顶 |
+| 编辑 | 点开笔记 → 标题/正文回填正确 |
+| 删除 | 弹出二次确认 → 确认后列表回到 2 条 |
+| 持久化 | 杀进程重进，笔记仍在 |
+
+截图：`docs/notes-list.jpg`、`docs/notes-edit.jpg`、`docs/notes-delete.jpg`
