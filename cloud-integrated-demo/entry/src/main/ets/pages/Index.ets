@@ -39,7 +39,7 @@ struct Index {
         .fontColor('#7A8B9A')
         .textAlign(TextAlign.Center)
 
-      Text('bundleName: com.example.cfapp')
+      Text('bundleName: com.chushuangls.clouddemo')
         .fontSize(12)
         .fontColor('#9AA7B4')
     }
