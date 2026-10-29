@@ -99,3 +99,38 @@ const res = await cloudFunction.call({
 
 如果希望它在 IDE 里可见可改，就在 `CloudProgram/cloudfunctions/` 下新建同名函数，
 再右键 `Deploy Cloud Function`（会覆盖云端同名函数的代码）。
+## 实际调用链路（当前实现，已实测 200）
+
+```
+POST https://connect-drcn.dbankcloud.cn/agc/apigw/oauth2/v1/token
+     {"grant_type":"client_credentials","client_id":...,"client_secret":...,"useJwt":1}
+  → access_token
+
+POST https://connect-drcn.dbankcloud.cn/agc/apigw/wisefunction/functions/4b7o26s1/testhan2-$latest
+     Authorization: Bearer <token>
+     client_id / appId / productId / sdkServiceName / sdkPlatform / sdkType / packageName
+  → 200 {"code":0,"msg":"hello from cloud function",...}
+```
+
+配置在 `entry/src/main/ets/common/CloudGateway.ets`。
+实测结果：状态码 200、耗时 564 ms。
+
+## 关于官方 `cloudFunction.call`（未走通，已记录）
+
+`@kit.CloudFoundationKit` 的 `cloudFunction.call({name:'testhan2', version:'$latest', data})`
+请求能到达服务端，但一直返回：
+
+```
+code: 1008211001
+message: 401:205525007:verify signature failed
+```
+
+已排查并排除：
+- 网络 / 网关可达 ✅
+- 应用与云函数同属项目 `101653523865475304` ✅
+- `agconnect-services.json` 包名匹配 ✅
+- AGC 已登记公钥指纹 `FA870D8A…420FA` ✅
+- 指纹变更后重新下载过配置文件（`client_secret` 已重新加密）✅
+
+仍失败，推测还需要在 DevEco 签名面板勾选「关联已注册应用」，让 AGC 把证书与项目正式绑定。
+在那之前，端侧调用走上面的直连方式。
