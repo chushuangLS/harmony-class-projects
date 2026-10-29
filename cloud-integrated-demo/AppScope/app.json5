@@ -1,6 +1,6 @@
 {
   "app": {
-    "bundleName": "com.chushuangls.clouddemo",
+    "bundleName": "com.chushuangls.cfdemo",
     "vendor": "example",
     "versionCode": 1000000,
     "versionName": "1.0.0",

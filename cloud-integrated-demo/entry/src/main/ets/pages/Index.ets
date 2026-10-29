@@ -1,51 +1,88 @@
 /**
  * 端云一体空项目 · 首页
  *
- * 工程结构：
- *   CloudProgram/cloudfunctions/  ← 云函数（云端代码）
- *   CloudProgram/clouddb/         ← 云数据库对象类型
- *   cloud_objects/                ← 由云端对象生成的调用接口（har 模块）
- *   AppScope/resources/rawfile/agconnect-services.json  ← AGC 项目配置
- *
- * 调用云函数的写法（API 12+，来自 @kit.CloudFoundationKit，本页暂未启用）：
- *
- *   import { cloudFunction } from '@kit.CloudFoundationKit';
- *
- *   const result = await cloudFunction.call({
- *     name: 'hello',          // cloudfunctions 下的函数名
- *     version: '$latest',
- *     data: { request: 'Hello World!' }
- *   });
+ * 云端调用使用 API 12+ 的 @kit.CloudFoundationKit（由 HMS SDK 提供）：
+ *   cloudFunction.call({ name, version, data })
  *
  * 前置条件：
- *   1. module.json5 已声明 ohos.permission.INTERNET
- *   2. AppScope/resources/rawfile/agconnect-services.json 的 package_name 与本工程 bundleName 一致
- *   3. AGC 上该函数已部署（否则返回服务端错误）
+ *   1. module.json5 声明 ohos.permission.INTERNET
+ *   2. AppScope/resources/rawfile/agconnect-services.json 的 package_name 与 bundleName 一致
+ *   3. 该函数已部署，且与本应用在同一个 AGC 项目下
  */
+import { cloudFunction } from '@kit.CloudFoundationKit';
+import { BusinessError } from '@kit.BasicServicesKit';
+
 @Entry
 @Component
 struct Index {
-  @State message: string = '端云一体空项目';
+  @State loading: boolean = false;
+  @State outText: string = '尚未调用';
+  @State success: boolean = false;
+
+  async callFn(): Promise<void> {
+    this.loading = true;
+    this.success = false;
+    this.outText = '调用中…';
+    try {
+      const params: cloudFunction.FunctionParams = {
+        name: 'testhan2',
+        version: '$latest',
+        data: '{"request":"Hello World!"}'
+      };
+      const res: cloudFunction.FunctionResult = await cloudFunction.call(params);
+      const r: string | Object = res.result;
+      this.outText = typeof r === 'string' ? r : JSON.stringify(r, null, 2);
+      this.success = true;
+    } catch (e) {
+      const err = e as BusinessError;
+      this.outText = '调用失败\ncode: ' + err.code + '\nmessage: ' + err.message;
+      this.success = false;
+    } finally {
+      this.loading = false;
+    }
+  }
 
   build() {
-    Column({ space: 12 }) {
-      Text(this.message)
-        .fontSize(26)
+    Column({ space: 14 }) {
+      Text('端云一体空项目')
+        .fontSize(24)
         .fontWeight(FontWeight.Bold)
         .fontColor('#1F2D3D')
 
-      Text('CloudProgram · cloud_objects · agconnect-services.json')
-        .fontSize(13)
-        .fontColor('#7A8B9A')
-        .textAlign(TextAlign.Center)
-
-      Text('bundleName: com.chushuangls.clouddemo')
+      Text('com.chushuangls.cfdemo · 课程项目')
         .fontSize(12)
-        .fontColor('#9AA7B4')
+        .fontColor('#7A8B9A')
+
+      Button('调用云函数 testhan2')
+        .width('86%')
+        .height(46)
+        .fontSize(16)
+        .backgroundColor('#3A7AFE')
+        .enabled(!this.loading)
+        .onClick(() => {
+          this.callFn();
+        })
+
+      if (this.loading) {
+        LoadingProgress().width(32).height(32)
+      }
+
+      Scroll() {
+        Text(this.outText)
+          .fontSize(13)
+          .fontColor(this.success ? '#155724' : '#5A6B7B')
+          .width('100%')
+          .padding(14)
+          .backgroundColor(this.success ? '#EAF7EE' : '#FFFFFF')
+          .borderRadius(10)
+      }
+      .layoutWeight(1)
+      .width('86%')
+      .scrollBar(BarState.Auto)
     }
     .width('100%')
     .height('100%')
-    .justifyContent(FlexAlign.Center)
+    .padding({ top: 60 })
     .backgroundColor('#F2F6FC')
   }
 }
