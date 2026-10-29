@@ -1,0 +1,11 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "端云一体空项目入口模块",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "cloud_objects": "file:../cloud_objects"
+  }
+}

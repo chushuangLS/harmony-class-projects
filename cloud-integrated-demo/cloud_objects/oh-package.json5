@@ -1,0 +1,9 @@
+{
+  "name": "cloud_objects",
+  "version": "1.0.0",
+  "description": "端云一体：云端对象（云函数 / 云数据库）生成的调用接口模块。DevEco 中执行 Generate Invoke Interface 时默认生成到这里。",
+  "author": "",
+  "main": "Index.ets",
+  "license": "Apache-2.0",
+  "dependencies": {}
+}
