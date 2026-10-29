@@ -7,7 +7,7 @@
 ```
 cloud-integrated-demo/
 ├── AppScope/
-│   ├── app.json5                                  bundleName = com.example.clouddemo
+│   ├── app.json5                                  bundleName = com.chushuangls.clouddemo
 │   └── resources/rawfile/agconnect-services.json   AGC 项目配置（云端调用必需）
 ├── entry/                                         端侧模块（首页 pages/Index）
 ├── cloud_objects/                                 云端对象生成的调用接口（har 模块）
@@ -38,7 +38,7 @@ cloud-integrated-demo/
 
 ## 注意
 
-- 当前 `bundleName = com.example.clouddemo`，复用的是 AGC 上已创建的 `com.example.clouddemo` 应用，
+- 当前 `bundleName = com.chushuangls.clouddemo`，复用的是 AGC 上已创建的 `com.chushuangls.clouddemo` 应用，
   所以 `agconnect-services.json` 能直接匹配。
 - 与仓库里的 `cloudfunc-app` **包名相同**，两个 App 不能同时安装在设备上（后装的会覆盖前者）。
   若想共存，把本工程 `AppScope/app.json5` 的 `bundleName` 改掉，并到 AGC 新建对应应用、
@@ -66,7 +66,7 @@ Set-Location 'D:\harmony-projects\cloud-integrated-demo'
 
 ## 包名与 AGC 配置（独立项目，勿与旧工程混用）
 
-本工程包名固定为 **`com.example.clouddemo`**，与仓库里的 `cloudfunc-app`（`com.example.cfapp`）完全独立，
+本工程包名固定为 **`com.chushuangls.clouddemo`**，与仓库里的 `cloudfunc-app`（`com.example.cfapp`）完全独立，
 可同时安装、互不覆盖。
 
 `@kit.CloudFoundationKit` 的云端调用要求：
@@ -75,7 +75,7 @@ Set-Location 'D:\harmony-projects\cloud-integrated-demo'
 当前 `rawfile/` 里只有 `agconnect-services.example.json`（那是 `com.example.cfapp` 的旧文件，仅作格式参考）。
 启用云端能力前必须：
 
-1. AGC 控制台 → 应用管理 → 新建应用，包名填 **`com.example.clouddemo`**
+1. AGC 控制台 → 应用管理 → 新建应用，包名填 **`com.chushuangls.clouddemo`**
 2. 该应用页底部 `SDK配置` → 下载 `agconnect-services.json`
 3. 重命名去掉 `.example`，覆盖到 `AppScope/resources/rawfile/`（并删除 example 文件）
 4. DevEco 打开本工程 → `Project Structure → Signing Configs` → 勾「自动生成签名文件」（新包名需新 Profile）
